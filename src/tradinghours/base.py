@@ -1,3 +1,4 @@
+import csv
 import datetime
 from typing import Any, Generic, List, TypeVar, cast
 
@@ -11,6 +12,23 @@ class BaseObject:
 
     def __init__(self):
         self.data = {}
+
+    @classmethod
+    def load_from_csv(cls, csv_file_path):
+        objects = []
+        with open(csv_file_path, "r") as csv_file:
+            csv_reader = csv.DictReader(csv_file)
+            for row in csv_reader:
+                obj = cls()
+                for field_name, field in cls.__dict__.items():
+                    if isinstance(field, Field):
+                        field_value = row.get(field.field_name)
+                        if field_value is not None:
+                            setattr(
+                                obj, field.field_name, field.load_csv_value(field_value)
+                            )
+                objects.append(obj)
+        return objects
 
 
 class Field(Generic[T]):
